@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/c++ -O3 -DNDEBUG -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/HDRVQM.dir/src/HDRVQM.cpp.o CMakeFiles/HDRVQM.dir/src/HDRVQMFrame.cpp.o CMakeFiles/HDRVQM.dir/src/ProjectParameters.cpp.o -o ../../bin/HDRVQM  ../../lib/libHDRLib.a 
