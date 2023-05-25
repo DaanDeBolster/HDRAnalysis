@@ -47,10 +47,10 @@ INLOOP="$3"
 DIFF=1      # Set to 0 to disable the generation of difference frames
 METRICS=1   # Set to 0 to disable objective analysis 
 
-# Build HDRTools code (if changes the source code were made)
-cd HDRTools/build 
-make
-cd ../..
+# # Build HDRTools code (if changes the source code were made)
+# cd HDRTools/build 
+# make
+# cd ../..
 
 # Make directories for IO
 mkdir -p IO
