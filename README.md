@@ -1,50 +1,74 @@
 # HDR Analysis
 
-This repository is meant as support for a masters dissertation: <br />
-Visual quality analysis of compressed high dynamic range video <br />
-By Daan De Bolster, Ghent University, may 2023
+This repository is meant as support for the masters dissertation with the follwowing title. <br />
+> **Visual quality analysis of compressed high dynamic range video** <br />
+> Daan De Bolster, Ghent University, august 2023
 
 For further information on the context in which this code is written, refer to the corresponding thesis paper.
 
 
-### Generating difference images
-A python script is included to generate difference images of 2 sets of video frames. The following prerequisites are necessary to run the code. Python 3 is required to run the code. Next to that the `cv2` module needs to be installed up front. This can be done via the following command.
+## Prerequisites
 
-	pip3 install opencv-python
+The [HDRTools](https://gitlab.com/standards/HDRTools) project is used to convert and measure HDR videos. This package is already added along the analysis code, including the Sim2 encoding functionality.
 
-Multiple video frames can be processed. The input frames are given as `.tif` files enumerated as follows in 2 seperate directories: `bt709_00000.tif`, `bt709_00001.tif`, `bt709_00002.tif`,... The script can be run using the following command.
+The [ffmpeg](https://ffmpeg.org/download.html) tool is used extensively to perform video conversions.
+
+In addition, the [ffmpeg-quality-metrics](https://pypi.org/project/ffmpeg-quality-metrics/) command line tool is used to calculate the VIF and VMAF of each compressed sample.
+
+[Siti-tools](https://pypi.org/project/siti-tools/) is used as a command line tool to generate the SI and TI values for the given sequences. The SI and TI of the used sequenes in this thesis have already been added in the `results/SiTi` directory.
+
+For a correct functioning of the included Python scripts, the following modules need to be installed:
+* [Numpy](https://numpy.org/)
+* [Scipy](https://scipy.org/install/)
+* [Pandas](https://pandas.pydata.org/)
+* [OpenCV](https://pypi.org/project/opencv-python/)
+* [Matplotlib](https://matplotlib.org/)
+
+The prepared test sequences can be downloaded [here](https://drive.google.com/drive/folders/1aYDkE5pV0tcklP7M61uJr7NMheQkJiJH?usp=sharing). For a correct usage, they should be put in the `in` directory.
 
 
-    python3 diff_frames.py <frames> <input1> <input2> <output>
+## Usage
+
+### Pre-analysis
+Running the `pre_analysis.py` script generates plots and measurements regarding the characteristics of the test sequences in the `in` directory, given the SI and TI data in the `results/SiTi/` directory. 
+```
+python3 pre_analysis.py
+```
+
+### Sim2 encoding
+The Sim2 encoding algorith is implemented and added to the HDRTools code in the following files:
+* `HDRTools/common/inc/Sim2Coding.H`
+* `HDRTools/common/src/Sim2Coding.cpp`
+
+Sim2 encoding can be applied by running HDRConvert as shown below.
+```
+./HDRTools/build/bin/HDRConvert
+```
+
+The Sim2 encoding functionality is disabled by default. It can be enabled by setting the `SetSim2` parameter to 1. Refer to the [HDRTools wiki](https://gitlab.com/standards/HDRTools/-/wikis/HDRConvert) for further information.
 
 
-Here `<frames>` is the number of frames to be compared. `<input1>` and `<input2>` specify the paths to the directories where the input frames are stored and `<output>` is the path to the directory where the difference frames should be outputted.
+### Encoding a sequence
+The `encode_frames.sh` shell script applies HEVC compression to a video sequence given a CRF and encodes the result into a set of tonemapped and Sim2 encoded frames. The CRF can be 0 to 51, or `none` to specify lossless compression. The script can be run as follows.
+```
+bash encode_frames.sh <name_to_label_output> <path_to_input_sequence> <CRF>
+```
 
+### Difference images
+The `diff_frames.py` Python script generates difference images for a given set of frames. The script can be run as follows.
+```
+python3 diff_frames.py <number_of_frames_to_compare> <path_to_1th_input_frames> <path_to_2nd_input_frames> <path_to_output_frames>
 
-###Converting frames to the Sim2 format
+```
 
-Sim2 encoding is added to the HDRTools package. The code can be found in `HDRTools/common/inc/Sim2Coding.H` and `HDRTools/common/src/Sim2Coding.cpp`. Sim2 encoding is disabled by default, it can be enabled by running `./HDRTools/build/bin/HDRConvert` and adding the option `-p SetSim2=1`. Note that Sim2 encoding is only supported for `.tif` inputs and outputs. However, HDRTools allows for multiple frames to be encoded at once.
+### Generating plots
+The `interpret_results.py` Python script generates plots and objective measurements using the opinion scores from the subjective tests.
+```
+python3 interpret_results.py
+```
 
-###Reconstructing the full analysis
-
-The full analysis pipeline is implemented as a Bash script in `encode.sh`. For being able to do run the full analysis script. The ffmpeg framework must be downloaded via this link: [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html). The script can be run using the following command.
-
-    bash encode.sh <CRF> <processing options> <compression options>
-
-`<CRF>` is the constant rate factor for libx265 encoding. `none` is also a valid option to specify lossless compression. `<processing options>` is used to specify extra ffmpeg options and `<compression options>` is used to specify extra libx265 encoding options. Both can also be set to `none` if no extra options should be added.
-
-The script also carries out an objective analysis and calculates a set of difference frames with an uncompressed reference video. These calculations can be disabled in the script code. Make sure that the prerequisites mentioned earlier are satisfied when generating difference frames is enabled.
-
-Input videos should be in the HDR10 format and their paths must be specified in the `encode.sh` script.
-
-If changes are made to the code, first cmake must be configured.
-
-	cd HDRTools/build
-	cmake .. -DCMAKE_BUILD_TYPE=Release
-	cd ../..
-
-Afterwards a new build can be generated using make.
-
-	cd HDRTools/build
-	make
-	cd ../..
+### Full analysis generation
+The `test.py` shell script generates the full set of information used in this research. Note that this requires about half a Terabyte of storage.
+```
+bash test.sh
+```
